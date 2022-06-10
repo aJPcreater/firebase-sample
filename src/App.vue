@@ -1,15 +1,53 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div class="app">
+    <button v-on:click="postTweet">ツイート</button>
+  </div>
+  <div>
+    <p v-for="tweet in tweets" :key="tweet.id">
+      {{ tweet.text }}
+    </p>
+  </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import { collection, addDoc, getDocs } from "firebase/firestore";
+// firebase.js で db として export したものをimport
+import { db } from "./firebase";
 
 export default {
-  name: "App",
-  components: {
-    HelloWorld,
+  data() {
+    return {
+      tweets: [
+        // こんなん
+        {
+          id: "0GwoGZuhTNhqHQDBeiVW",
+          text: "こんにちは、ツイートの本文です。",
+        },
+      ],
+    };
+  },
+  methods: {
+    postTweet() {
+      const tweet = {
+        text: "こんにちは、ツイートの本文です。",
+      };
+      addDoc(collection(db, "tweets"), tweet).then((ref) => {
+        this.tweets.push({
+          id: ref.id,
+          ...tweet,
+        });
+      });
+    },
+    created() {
+      getDocs(collection(db, "tweets")).then((snapshot) => {
+        snapshot.forEach((doc) => {
+          this.tweets.push({
+            id: doc.id,
+            ...doc.data(),
+          });
+        });
+      });
+    },
   },
 };
 </script>
